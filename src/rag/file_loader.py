@@ -8,7 +8,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_community.embeddings import SentenceTransformerEmbeddings
-import re
 
 
 def remove_non_utf8_characters(text):

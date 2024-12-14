@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-
 from src.rag.file_loader import Loader
 from src.rag.vectorstore import VectorDB
 from src.rag.offline_rag import Offline_RAG

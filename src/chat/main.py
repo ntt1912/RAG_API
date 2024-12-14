@@ -1,10 +1,7 @@
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-
 from src.chat.history import create_session_factory
-
-from langchain_core.output_parsers import StrOutputParser
 from src.chat.output_parser import Str_OutputParser
 
 

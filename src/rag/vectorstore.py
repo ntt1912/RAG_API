@@ -2,9 +2,7 @@ from typing import Union, List
 from langchain_chroma import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.retrievers.multi_query import MultiQueryRetriever
-from sentence_transformers import SentenceTransformer
 from langchain_openai import OpenAIEmbeddings
 
 # import os
@@ -37,40 +35,6 @@ from langchain_openai import OpenAIEmbeddings
 #                       ):
 #         retriever = self.db.as_retriever(search_type=search_type,
 #                                          search_kwargs=search_kwargs)
-#         return retriever
-
-
-# class VectorDB:
-#     def __init__(self,
-#                  documents=None,
-#                  vector_db: Union[Chroma, FAISS] = Chroma,
-#                  embedding=HuggingFaceEmbeddings(),
-#                  ) -> None:
-#         self.vector_db = vector_db
-#         self.embedding = embedding
-#         self.db = self._build_db(documents)
-
-#     def _build_db(self, documents):
-#         db = self.vector_db.from_documents(documents=documents, 
-#                                            embedding=self.embedding)
-#         return db
-
-#     def get_retriever(self, 
-#                       search_type: str = "similarity", 
-#                       search_kwargs: dict = {"k": 3},
-#                       llm=None  
-#                       ):
-#         base_retriever = self.db.as_retriever(search_type=search_type,
-#                                               search_kwargs=search_kwargs)
-#         if llm is not None:
-#             retriever = MultiQueryRetriever.from_llm(
-#                 retriever=base_retriever,
-#                 llm=llm,
-#                 search_kwargs={"k": search_kwargs["k"]}
-#             )
-#         else:
-#             retriever = base_retriever
-
 #         return retriever
 
 class VectorDB:
@@ -107,7 +71,6 @@ class VectorDB:
 
         return retriever
 
-# class VectorDB:
 #     def __init__(self,
 #                  documents=None,
 #                  vector_db: Union[Chroma, FAISS] = Chroma,
@@ -116,28 +79,3 @@ class VectorDB:
 #                  ) -> None:
 #         # Sử dụng OpenAIEmbeddings
 #         self.embedding = OpenAIEmbeddings(model=embedding_model, openai_api_key=openai_api_key)
-#         self.vector_db = vector_db
-#         self.db = self._build_db(documents)
-
-#     def _build_db(self, documents):
-#         db = self.vector_db.from_documents(documents=documents, 
-#                                            embedding=self.embedding)
-#         return db
-
-#     def get_retriever(self, 
-#                       search_type: str = "similarity", 
-#                       search_kwargs: dict = {"k": 6},
-#                       llm=None  
-#                       ):
-#         base_retriever = self.db.as_retriever(search_type=search_type,
-#                                               search_kwargs=search_kwargs)
-#         if llm is not None:
-#             retriever = MultiQueryRetriever.from_llm(
-#                 retriever=base_retriever,
-#                 llm=llm,
-#                 search_kwargs={"k": search_kwargs["k"]}
-#             )
-#         else:
-#             retriever = base_retriever
-
-#         return retriever
