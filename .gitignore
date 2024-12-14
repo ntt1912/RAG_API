@@ -155,7 +155,7 @@ cython_debug/
 
 /data_source/*/*.pdf
 /data_source/*/*.html
-
+/chat_history
 
 lang
 .vscode

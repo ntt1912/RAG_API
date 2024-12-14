@@ -273,6 +273,8 @@ class Loader:
         doc_loaded = self.doc_loader(pdf_files, workers=workers)
         doc_split = self.doc_splitter(doc_loaded)
 
+        # In số chunk
+        print(f"Number of chunks from files: {len(doc_split)}")
         return doc_split
 
     def load_dir(self, dir_path: str, workers: int = 1):

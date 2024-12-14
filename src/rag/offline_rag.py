@@ -57,7 +57,6 @@ class Offline_RAG:
 
     def format_docs(self, docs):
         context ="\n\n".join(doc.page_content for doc in docs)
-        print(context)
         return context
 
     
