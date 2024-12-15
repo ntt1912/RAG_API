@@ -5,6 +5,7 @@ from langchain_huggingface import HuggingFacePipeline
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 
+
 # nf4_config = BitsAndBytesConfig(
 #     load_in_4bit=True,
 #     bnb_4bit_quant_type="nf4",
@@ -38,6 +39,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 #     )
 
 #     return llm
+
+
+
 def get_hf_llm(api_key):
     if not api_key:
         raise ValueError("API key is missing. Please set your Google Gemini API key.")
@@ -45,7 +49,6 @@ def get_hf_llm(api_key):
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
         api_key=api_key,
-        temperature=0.1,
-        convert_system_message_to_human=True,
+        temperature=0.1
     )
     return llm

@@ -14,14 +14,11 @@ API_KEY = os.getenv("GOOGLE_API_KEY")
 llm = get_hf_llm(api_key=API_KEY)
 # llm = get_hf_llm(temperature=0.4)
 
-genai_docs = "./data_source/generative_ai"
-ml_docs = "./data_source/machine_learning"
+iot_docs = "./data_source/IoT"
 
 # --------- Chains----------------
 
-genai_chain = build_rag_chain(llm, data_dir=genai_docs, data_type="pdf")
-ml_chain = build_rag_chain(llm, data_dir=ml_docs, data_type="html")
-
+iot_chain = build_rag_chain(llm, data_dir=iot_docs, data_type="pdf")
 chat_chain = build_chat_chain(llm, 
                               history_folder="./chat_histories",
                               max_history_length=6)
@@ -51,15 +48,9 @@ async def check():
     return {"status": "ok"}
 
 
-@app.post("/generative_ai", response_model=OutputQA)
-async def generative_ai(inputs: InputQA):
-    answer = genai_chain.invoke(inputs.question)
-    return {"answer": answer}
-
-
-@app.post("/machine_learning", response_model=OutputQA)
-async def machine_learning(inputs: InputQA):
-    answer = ml_chain.invoke(inputs.question)
+@app.post("/IoT", response_model=OutputQA)
+async def IoT(inputs: InputQA):
+    answer = iot_chain.invoke(inputs.question)
     return {"answer": answer}
 
 @app.post("/chat", response_model=OutputQA)
@@ -72,15 +63,9 @@ async def chat(inputs: InputChat):
 
 # --------- Langserve Routes - Playground ----------------
 add_routes(app, 
-           genai_chain, 
+           iot_chain, 
            playground_type="default",
-           path="/generative_ai")
-
-add_routes(app, 
-           ml_chain, 
-           playground_type="default",
-           path="/machine_learning")
-
+           path="/IoT")
 
 add_routes(app,
            chat_chain,

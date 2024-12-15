@@ -41,7 +41,7 @@ class VectorDB:
     def __init__(self,
                  documents=None,
                  vector_db: Union[Chroma, FAISS] = Chroma,
-                 embedding_model: str = 'sentence-transformers/all-MiniLM-L12-v2',  # default to Sentence-BERT
+                 embedding_model: str = 'keepitreal/vietnamese-sbert',  # default to Sentence-BERT
                  ) -> None:
         # Sử dụng Sentence-BERT làm model embedding
         self.embedding = HuggingFaceEmbeddings(model_name=embedding_model)

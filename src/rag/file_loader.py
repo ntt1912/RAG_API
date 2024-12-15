@@ -2,12 +2,13 @@ from typing import Union, List, Literal
 import glob
 from tqdm import tqdm
 import multiprocessing
-from langchain_community.document_loaders import PyPDFLoader, BSHTMLLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.docstore.document import Document
-from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
 from langchain_experimental.text_splitter import SemanticChunker
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.embeddings import SentenceTransformerEmbeddings
+from pydantic import BaseModel
+
 
 
 def remove_non_utf8_characters(text):
@@ -24,11 +25,6 @@ def load_pdf(pdf_file):
 # def load_pdf(pdf_file):
 #     docs = PyPDFLoader(pdf_file, extract_images=True).load()
 #     return [Document(page_content=remove_non_utf8_characters(doc.page_content), metadata=doc.metadata) for doc in docs]
-
-
-def load_html(html_file):
-    docs = BSHTMLLoader(html_file, open_encoding='utf-8').load()
-    return [Document(page_content=remove_non_utf8_characters(doc.page_content), metadata=doc.metadata) for doc in docs]
 
 
 def get_num_cpu():
@@ -58,21 +54,6 @@ class PDFLoader(BaseLoader):
                     pbar.update(1)
         return doc_loaded
 
-
-class HTMLLoader(BaseLoader):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def __call__(self, html_files: List[str], **kwargs):
-        num_processes = min(self.num_processes, kwargs["workers"])
-        with multiprocessing.Pool(processes=num_processes) as pool:
-            doc_loaded = []
-            total_files = len(html_files)
-            with tqdm(total=total_files, desc="Loading HTMLs", unit="file") as pbar:
-                for result in pool.imap_unordered(load_html, html_files):
-                    doc_loaded.extend(result)
-                    pbar.update(1)
-        return doc_loaded
 
 # class SemanticChunker:
 #     def __init__(self, model_name: str = "all-MiniLM-L6-v2", threshold: float = 0.6, buffer_size: int = 1):
@@ -120,6 +101,15 @@ class HTMLLoader(BaseLoader):
 
 #         return chunked_docs
     
+
+class HuggingFaceInferenceAPIEmbeddings(BaseModel):
+    model_name: str
+
+    class Config:
+        protected_namespaces = ()
+
+
+
 class TextSplitter:
     def __init__(self,
                 breakpoint_threshold_type="percentile",
@@ -128,7 +118,7 @@ class TextSplitter:
                 sentence_split_regex: str = r"(?<=[.?!])\s+",
                 ) -> None:
         
-        self.embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L12-v2")
+        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L12-v2")
         self.splitter = SemanticChunker(
             embeddings=self.embeddings,
             breakpoint_threshold_type=breakpoint_threshold_type,
@@ -152,15 +142,13 @@ class Loader:
                         "sentence_split_regex": r"(?<=[.?!])\s+",
                     }
                  ) -> None:
-        assert file_type in ["pdf", "html"], "file_type must be either pdf or html"
+        assert file_type in ["pdf"], "file_type must be pdf"
         self.file_type = file_type
         if file_type == "pdf":
             self.doc_loader = PDFLoader()
-        elif file_type == "html":
-            self.doc_loader = HTMLLoader()
         else:
-            raise ValueError("file_type must be either pdf or html")
-
+            raise ValueError("file_type must be pdf")
+        
         self.doc_splitter = TextSplitter(**split_kwargs)
 
     def load(self, pdf_files: Union[str, List[str]], workers: int = 1):
@@ -178,6 +166,5 @@ class Loader:
             files = glob.glob(f"{dir_path}/*.pdf")
             assert len(files) > 0, f"No {self.file_type} files found in {dir_path}"
         else:
-            files = glob.glob(f"{dir_path}/*.html")
-            assert len(files) > 0, f"No {self.file_type} files found in {dir_path}"
+            raise ValueError("file_type must be pdf")
         return self.load(files, workers=workers)
