@@ -155,10 +155,9 @@ cython_debug/
 
 /data_source/*/*.pdf
 /data_source/*/*.html
-/chat_history
+/chat_history/*.json
 
 lang
 .vscode
 .rag.db
-/src
-/vector_db
+/src/vector_db
