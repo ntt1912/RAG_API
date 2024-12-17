@@ -5,42 +5,10 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_openai import OpenAIEmbeddings
 
-# import os
-# from dotenv import load_dotenv
-# load_dotenv()
-# api_key = os.getenv("OPENAI_API_KEY")
-
-# load_dotenv()
-
-# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-# class VectorDB:
-#     def __init__(self,
-#                  documents = None,
-#                  vector_db: Union[Chroma, FAISS] = Chroma,
-#                  embedding = HuggingFaceEmbeddings(),
-#                  ) -> None:
-        
-#         self.vector_db = vector_db
-#         self.embedding = embedding
-#         self.db = self._build_db(documents)
-
-#     def _build_db(self, documents):
-#         db = self.vector_db.from_documents(documents=documents, 
-#                                           embedding=self.embedding)
-#         return db
-
-#     def get_retriever(self, 
-#                       search_type: str = "similarity", 
-#                       search_kwargs: dict = {"k": 3}
-#                       ):
-#         retriever = self.db.as_retriever(search_type=search_type,
-#                                          search_kwargs=search_kwargs)
-#         return retriever
-
 class VectorDB:
     def __init__(self,
                  documents=None,
-                 vector_db: Union[Chroma, FAISS] = Chroma,
+                 vector_db: Union[Chroma, FAISS] = Chroma(persist_directory="./src/rag/vector_db"),
                  embedding_model: str = 'keepitreal/vietnamese-sbert',  # default to Sentence-BERT
                  ) -> None:
         # Sử dụng Sentence-BERT làm model embedding
@@ -55,7 +23,7 @@ class VectorDB:
 
     def get_retriever(self, 
                       search_type: str = "similarity", 
-                      search_kwargs: dict = {"k": 4},
+                      search_kwargs: dict = {"k": 10},
                       llm=None  
                       ):
         base_retriever = self.db.as_retriever(search_type=search_type,

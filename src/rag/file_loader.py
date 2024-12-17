@@ -1,5 +1,5 @@
 from typing import Union, List, Literal
-import glob
+import glob, re
 from tqdm import tqdm
 import multiprocessing
 from langchain_community.document_loaders import PyPDFLoader
@@ -9,22 +9,26 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from pydantic import BaseModel
 
-
-
 def remove_non_utf8_characters(text):
+    """Remove non-UTF-8 characters to ensure text integrity."""
     return text.encode('utf-8', 'ignore').decode('utf-8')
+
+def clean_text_advanced(text: str) -> str:
+    """Advanced text cleaning, removing unnecessary patterns and fixing formatting."""
+    text = remove_non_utf8_characters(text)
+    text = re.sub(r'\s+', ' ', text).strip()  # Replace multiple spaces with a single space
+    return text
+
+# def load_pdf(pdf_file):
+#     """Combine all pages of a PDF into a single content block."""
+#     docs = PyPDFLoader(pdf_file, extract_images=False).load()
+#     combined_content = " ".join([doc.page_content for doc in docs])
+#     return [Document(page_content=clean_text_advanced(combined_content), metadata=docs[0].metadata)]
 
 
 def load_pdf(pdf_file):
-    """Combine all pages of a PDF into a single content block."""
-    docs = PyPDFLoader(pdf_file, extract_images=True).load()
-    combined_content = " ".join([doc.page_content for doc in docs])
-    return [Document(page_content=remove_non_utf8_characters(combined_content), metadata=docs[0].metadata)]
-
-
-# def load_pdf(pdf_file):
-#     docs = PyPDFLoader(pdf_file, extract_images=True).load()
-#     return [Document(page_content=remove_non_utf8_characters(doc.page_content), metadata=doc.metadata) for doc in docs]
+    docs = PyPDFLoader(pdf_file, extract_images=False).load()
+    return [Document(page_content=clean_text_advanced(doc.page_content), metadata=doc.metadata) for doc in docs]
 
 
 def get_num_cpu():
@@ -53,61 +57,6 @@ class PDFLoader(BaseLoader):
                     doc_loaded.extend(result)
                     pbar.update(1)
         return doc_loaded
-
-
-# class SemanticChunker:
-#     def __init__(self, model_name: str = "all-MiniLM-L6-v2", threshold: float = 0.6, buffer_size: int = 1):
-#         self.model = SentenceTransformer(model_name)
-#         self.threshold = threshold
-#         self.buffer_size = buffer_size
-
-#     def __call__(self, documents: List[Document]):
-#         chunked_docs = []
-#         for doc in documents:
-#             # Step 1: Split text into sentences using regex
-#             sentences = re.split(r'[.?!]', doc.page_content)
-#             sentences = [s.strip() for s in sentences if s.strip()]
-#             if not sentences:
-#                 continue
-
-#             # Step 2: Group adjacent sentences into larger sentences using buffer_size
-#             grouped_sentences = []
-#             for i in range(0, len(sentences), self.buffer_size + 1):
-#                 grouped_sentence = ' '.join(sentences[i:i + self.buffer_size + 1])
-#                 grouped_sentences.append(grouped_sentence)
-
-#             # Step 3: Encode the sentences into embeddings
-#             embeddings = self.model.encode(grouped_sentences)
-#             current_chunk = grouped_sentences[0]
-#             current_embedding = embeddings[0].reshape(1, -1)
-
-#             # Step 4: Calculate similarity scores between consecutive sentences
-#             for i in range(1, len(grouped_sentences)):
-#                 new_embedding = embeddings[i].reshape(1, -1)
-#                 similarity = cosine_similarity(current_embedding, new_embedding)[0][0]
-
-#                 # Step 5: Chunk the sentences based on the similarity scores and the threshold
-#                 if similarity < self.threshold:
-#                     chunked_docs.append(Document(page_content=current_chunk, metadata=doc.metadata))
-#                     current_chunk = grouped_sentences[i]
-#                     current_embedding = new_embedding
-#                 else:
-#                     current_chunk += ' ' + grouped_sentences[i]
-#                     current_embedding = (current_embedding + new_embedding) / 2
-
-#             # Append the last chunk
-#             if current_chunk:
-#                 chunked_docs.append(Document(page_content=current_chunk, metadata=doc.metadata))
-
-#         return chunked_docs
-    
-
-class HuggingFaceInferenceAPIEmbeddings(BaseModel):
-    model_name: str
-
-    class Config:
-        protected_namespaces = ()
-
 
 
 class TextSplitter:

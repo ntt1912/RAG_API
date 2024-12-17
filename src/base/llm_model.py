@@ -3,7 +3,7 @@ from transformers import BitsAndBytesConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_huggingface import HuggingFacePipeline
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+from langchain_openai import ChatOpenAI
 
 
 # nf4_config = BitsAndBytesConfig(
@@ -52,3 +52,13 @@ def get_hf_llm(api_key):
         temperature=0.1
     )
     return llm
+
+# def get_hf_llm(api_key):
+#     if not api_key:
+#         raise ValueError("API key is missing. Please set your OpenAI API key.")
+#     llm = ChatOpenAI(
+#         model='gpt-3.5-turbo',
+#         api_key=api_key,
+#         temperature=0.2
+#     )
+#     return llm
