@@ -59,11 +59,12 @@ async def check():
 
 @app.post("/IoT", response_model=OutputQA)
 async def IoT(inputs: InputQA):
+    questions = inputs.question
     session_id = inputs.session_id or str(uuid.uuid4())
     logging.info(f"Session ID: {session_id},User_query : {inputs.question}")
     chat_history = get_rag_history(session_id) 
     answer = iot_chain.invoke({
-        "input": inputs.question,
+        "input": questions,
         "chat_history": chat_history
     })['answer']
 
@@ -73,9 +74,10 @@ async def IoT(inputs: InputQA):
 
 @app.post("/chat", response_model=OutputChat)
 async def chat(inputs: InputChat):
+    question=inputs.human_input
     session_id = inputs.session_id or str(uuid.uuid4())
     answer = chat_chain.invoke(
-            {"human_input": inputs.human_input},  
+            {"human_input": question},  
             {'configurable': {'session_id': session_id}}
     )
     return OutputChat(answer=answer, session_id=session_id, model=inputs.model.value)
