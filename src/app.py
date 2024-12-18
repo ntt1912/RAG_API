@@ -18,6 +18,7 @@ logging.basicConfig(filename='app.log', level=logging.INFO)
 load_dotenv()
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
+# API_KEY = os.getenv("OPENAI_API_KEY")
 llm = get_hf_llm(api_key=API_KEY)
 # llm = get_hf_llm(temperature=0.4)
 
@@ -28,7 +29,7 @@ iot_docs = "./data_source/IoT"
 iot_chain = build_rag_chain(llm, data_dir=iot_docs, data_type="pdf")
 chat_chain = build_chat_chain(llm, 
                               history_folder="./chat_histories",
-                              max_history_length=6)
+                              max_history_length=8)
 
 
 # --------- App - FastAPI ----------------
