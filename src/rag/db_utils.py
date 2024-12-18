@@ -34,7 +34,7 @@ def insert_application_logs(session_id, user_query, model_response, model):
     conn.commit()
     conn.close()
 
-def get_chat_history(session_id):
+def get_rag_history(session_id):
     conn = db_connect()
     cursor = conn.cursor()
     cursor.execute('SELECT user_query, model_response FROM application_logs WHERE session_id = ? ORDER BY created_at', (session_id,))

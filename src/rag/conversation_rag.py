@@ -1,6 +1,3 @@
-import re
-from langchain import hub
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.retrieval import create_retrieval_chain
@@ -35,23 +32,6 @@ rag_prompt = ChatPromptTemplate.from_messages(
         ("human", "{input}")
     ]
 )
-
-
-# class Str_OutputParser(StrOutputParser):
-#     def __init__(self) -> None:
-#         super().__init__()
-    
-#     def parse(self, text: str) -> str:
-#         return self.extract_answer(text)
-    
-#     def extract_answer(self, text_response: str, pattern: str = r"Answer:\s*(.*)") -> str:
-#         match = re.search(pattern, text_response, re.DOTALL)
-#         if match:
-#             answer_text = match.group(1).strip()
-#             return answer_text
-#         else:
-#             return text_response
-
 
 class Offline_RAG:
     def __init__(self, llm) -> None:

@@ -4,10 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from langserve import add_routes
 from src.base.llm_model import get_hf_llm
 from src.rag.main import build_rag_chain, InputQA, OutputQA
-from src.rag.db_utils import insert_application_logs, get_chat_history
-from src.chat.main import InputChat
+from src.rag.db_utils import insert_application_logs, get_rag_history
+from src.chat.main import InputChat, OutputChat
 from src.chat.main import build_chat_chain
 from dotenv import load_dotenv
+
 import uuid
 import shutil
 import logging
@@ -60,7 +61,7 @@ async def check():
 async def IoT(inputs: InputQA):
     session_id = inputs.session_id or str(uuid.uuid4())
     logging.info(f"Session ID: {session_id},User_query : {inputs.question}")
-    chat_history = get_chat_history(session_id) 
+    chat_history = get_rag_history(session_id) 
     answer = iot_chain.invoke({
         "input": inputs.question,
         "chat_history": chat_history
@@ -70,13 +71,14 @@ async def IoT(inputs: InputQA):
     logging.info(f"Session ID: {session_id}, AI Response: {answer}")
     return OutputQA(answer=answer, session_id=session_id,model= inputs.model.value)
 
-@app.post("/chat", response_model=OutputQA)
+@app.post("/chat", response_model=OutputChat)
 async def chat(inputs: InputChat):
+    session_id = inputs.session_id or str(uuid.uuid4())
     answer = chat_chain.invoke(
             {"human_input": inputs.human_input},  
-            {"configurable": {"session_id": inputs.session_id}}  
+            {'configurable': {'session_id': session_id}}
     )
-    return {"answer": answer}
+    return OutputChat(answer=answer, session_id=session_id, model=inputs.model.value)
 
 # --------- Langserve Routes - Playground ----------------
 add_routes(app, 
