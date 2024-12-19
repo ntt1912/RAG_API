@@ -42,23 +42,20 @@ from langchain_openai import ChatOpenAI
 
 
 
-def get_hf_llm(api_key):
+def get_llm(api_key, model_name="gemini-1.5-flash"):
     if not api_key:
-        raise ValueError("API key is missing. Please set your Google Gemini API key.")
+        raise ValueError("API key is missing. Please set your API key.")
     
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
-        api_key=api_key,
-        temperature=0.1
-    )
+    if model_name == "gpt-4o-mini":
+        llm = ChatOpenAI(
+            model="gpt-4o-mini",
+            api_key=api_key,
+            temperature=0.2
+        )
+    else:
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",
+            api_key=api_key,
+            temperature=0.1
+        )
     return llm
-
-# def get_hf_llm(api_key):
-#     if not api_key:
-#         raise ValueError("API key is missing. Please set your OpenAI API key.")
-#     llm = ChatOpenAI(
-#         model='gpt-3.5-turbo',
-#         api_key=api_key,
-#         temperature=0.2
-#     )
-#     return llm

@@ -3,6 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from src.rag.vectorDB_retriever import VectorDB
 
 contextualize_q_system_prompt = (
     "Given a chat history and the latest user question "
@@ -33,15 +34,22 @@ rag_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-class Offline_RAG:
+class Conversation_RAG:
     def __init__(self, llm) -> None:
+        self.retriever= self._get_retriever_for_rag(llm)
         self.llm = llm
         self.prompt = rag_prompt
         self.contextualize_q_prompt = contextualize_q_prompt
+    
+    def _get_retriever_for_rag(self,llm):
+        vector_db = VectorDB()
+        retriever = vector_db.get_retriever(llm=llm)
+        return retriever   
+        
 
-    def get_chain(self, retriever):
+    def get_chain(self):
         history_aware_retriever = create_history_aware_retriever(
-            self.llm, retriever, self.contextualize_q_prompt
+            self.llm, self.retriever, self.contextualize_q_prompt
         )
         question_answer_chain = create_stuff_documents_chain(self.llm, self.prompt)
 

@@ -1,13 +1,8 @@
 from pydantic import BaseModel, Field
 from src.rag.document_loader import Loader
 from src.rag.vectorDB_retriever import VectorDB
-from src.rag.conversation_rag import Offline_RAG
-from enum import Enum
-
-
-class ModelName(str, Enum):
-    GPT3_5 = "gpt3.5-turbo"
-    GEMINI_1_5_FLASH = "gemini-1.5-flash"
+from src.rag.conversation_rag import Conversation_RAG
+from datetime import datetime
 
 
 class InputQA(BaseModel):
@@ -16,22 +11,26 @@ class InputQA(BaseModel):
         default=None,
         title="Optional session ID. If not provided, one will be generated.",
     )
-    model: ModelName = Field(
-        default=ModelName.GEMINI_1_5_FLASH,
-        title="Model to use for answering the question",
-    )
     model_config = {"protected_namespaces": ()}
 
 
 class OutputQA(BaseModel):
     answer: str = Field(..., title="Answer from the model")
     session_id: str = Field(..., title="Session ID for the conversation")
-    model: ModelName
+    model: str = Field(..., title="Model used to answer the question")
     model_config = {"protected_namespaces": ()}
 
+class DocumentInfo(BaseModel):
+    id: int
+    filename: str
+    upload_timestamp: datetime
 
-def build_rag_chain(llm, data_dir, data_type):
-    chunks, uuids = Loader(file_type=data_type).load_dir(data_dir, workers=4)
-    retriever = VectorDB(documents=chunks, ids=uuids).get_retriever(llm=llm)
-    rag_chain = Offline_RAG(llm).get_chain(retriever)
-    return rag_chain
+class DeleteFileRequest(BaseModel):
+    file_id: int
+
+
+# def build_rag_chain(llm, data_dir, data_type):
+#     doc_split = Loader(file_types=data_type).load_dir(data_dir, workers=4)
+#     retriever = VectorDB(documents=doc_split).get_retriever(llm=llm)
+#     rag_chain = Conversation_RAG(llm).get_chain(retriever)
+#     return rag_chain

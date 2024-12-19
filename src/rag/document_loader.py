@@ -2,11 +2,10 @@ from typing import Union, List, Literal
 import glob, re
 from tqdm import tqdm
 import multiprocessing
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader
 from langchain.docstore.document import Document
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface import HuggingFaceEmbeddings
-import uuid
 
 def remove_non_utf8_characters(text):
     """Remove non-UTF-8 characters to ensure text integrity."""
@@ -24,6 +23,11 @@ def load_pdf(pdf_file):
     combined_content = " ".join([doc.page_content for doc in docs])
     return [Document(page_content=clean_text_advanced(combined_content), metadata=docs[0].metadata)]
 
+
+def load_docx(docx_file):
+    """Load a DOCX file and return a list of documents."""
+    docs = Docx2txtLoader(docx_file).load()
+    return [Document(page_content=clean_text_advanced(doc.page_content), metadata=doc.metadata) for doc in docs]
 
 # def load_pdf(pdf_file):
 #     docs = PyPDFLoader(pdf_file, extract_images=False).load()
@@ -57,6 +61,20 @@ class PDFLoader(BaseLoader):
                     pbar.update(1)
         return doc_loaded
 
+class DOCXLoader(BaseLoader):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def __call__(self, docx_files: List[str], **kwargs):
+        num_processes = min(self.num_processes, kwargs["workers"])
+        with multiprocessing.Pool(processes=num_processes) as pool:
+            doc_loaded = []
+            total_files = len(docx_files)
+            with tqdm(total=total_files, desc="Loading DOCXs", unit="file") as pbar:
+                for result in pool.imap_unordered(load_docx, docx_files):
+                    doc_loaded.extend(result)
+                    pbar.update(1)
+        return doc_loaded
 
 class TextSplitter:
     def __init__(self,
@@ -75,57 +93,42 @@ class TextSplitter:
             sentence_split_regex=sentence_split_regex,
         )
     def __call__(self, documents):
-        return self.splitter.create_documents(documents)
+        return self.splitter.split_documents(documents)
 
 
 class Loader:
     def __init__(self, 
-                 file_type: str = Literal["pdf", "html"],
-                #  split_kwargs: dict = {
-                #      "threshold": 0.6}
-                    split_kwargs: dict = {
-                        "breakpoint_threshold_type": "percentile",
-                        "breakpoint_threshold_amount": 85,
-                        "buffer_size": 1,
-                        "sentence_split_regex": r"(?<=[.?!])\s+",
-                    }
+                 file_types: List[str] = ["pdf", "docx"],
+                 split_kwargs: dict = {
+                     "breakpoint_threshold_type": "percentile",
+                     "breakpoint_threshold_amount": 85,
+                     "buffer_size": 1,
+                     "sentence_split_regex": r"(?<=[.?!])\s+",
+                 }
                  ) -> None:
-        assert file_type in ["pdf"], "file_type must be pdf"
-        self.file_type = file_type
-        if file_type == "pdf":
-            self.doc_loader = PDFLoader()
-        else:
-            raise ValueError("file_type must be pdf")
-        
+        assert all(ft in ["pdf", "docx"] for ft in file_types), \
+            "file_types must only contain 'pdf'or 'docx'"
+        self.file_types = file_types
         self.doc_splitter = TextSplitter(**split_kwargs)
+        self.loaders = {
+            "pdf": PDFLoader(),
+            "docx": DOCXLoader(),
+        }
 
-    def load(self, pdf_files: Union[str, List[str]], workers: int = 1):
-        if isinstance(pdf_files, str):
-            pdf_files = [pdf_files]
-        doc_loaded = self.doc_loader(pdf_files, workers=workers)
-
-        chunks=[]
-        uuids = []
-
-        for idx,doc in enumerate(doc_loaded):
-            chunked_docs = self.doc_splitter([doc.page_content])
-            for chunk in chunked_docs:
-                chunk.metadata['parent'] = idx
-                chunks.append(chunk)
-                uuids.append(str(uuid.uuid4()))
-
+    def load_and_split(self, files: List[str], workers: int = 1):
+        doc_loaded = []
+        for file_type in self.file_types:
+            specific_files = [file for file in files if file.endswith(f".{file_type}")]
+            if specific_files:
+                doc_loaded.extend(self.loaders[file_type](specific_files, workers=workers))
+        doc_split = self.doc_splitter(doc_loaded)
 
         # In số chunk
-        print(f"Number of chunks from files: {len(chunks)}")
-        return chunks, uuids
+        print(f"Number of chunks from files: {len(doc_split)}")
+        return doc_split
 
-    def load_dir(self, dir_path: str, workers: int = 1):
-        if self.file_type == "pdf":
-            files = glob.glob(f"{dir_path}/*.pdf")
-            assert len(files) > 0, f"No {self.file_type} files found in {dir_path}"
-        else:
-            raise ValueError("file_type must be pdf")
-        return self.load(files, workers=workers)
+    def load_dir(self, file_path: str, workers: int = 1):
+        return self.load_and_split([file_path], workers=workers)
 
 
 
