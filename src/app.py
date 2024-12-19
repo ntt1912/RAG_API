@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.base_llms.llm_model import get_llm
-from rag.pydantic_utils import InputQA, OutputQA, DocumentInfo, DeleteFileRequest
+from src.rag.pydantic_utils import InputQA, OutputQA, DocumentInfo, DeleteFileRequest
 from src.rag.db_utils import insert_application_logs, get_rag_history
 from src.chatchit.main import InputChat, OutputChat
 from src.chatchit.main import build_chat_chain
@@ -67,17 +67,17 @@ async def check():
 async def IoT(inputs: InputQA):
     questions = inputs.question
     session_id = inputs.session_id or str(uuid.uuid4())
-    logging.info(f"Session ID: {session_id},User_query : {inputs.question}")
+    logging.info(f"Session ID: {session_id}, User Query: {inputs.question}, Model: {inputs.model.value}")
     chat_history = get_rag_history(session_id) 
-    iot_chain = Conversation_RAG(llm).get_chain()
+    iot_chain = Conversation_RAG(model_name=inputs.model.value).get_chain()
     answer = iot_chain.invoke({
         "input": questions,
         "chat_history": chat_history
     })['answer']
 
-    insert_application_logs(session_id, inputs.question, answer, MODEL_NAME)
+    insert_application_logs(session_id, inputs.question, answer,inputs.model.value) 
     logging.info(f"Session ID: {session_id}, AI Response: {answer}")
-    return OutputQA(answer=answer, session_id=session_id, model=MODEL_NAME)
+    return OutputQA(answer=answer, session_id=session_id, model=inputs.model)
 
 @app.post("/chat", response_model=OutputChat)
 async def chat(inputs: InputChat):
@@ -118,8 +118,8 @@ async def upload_and_index_document(file: UploadFile = File(...)):
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-@app.get("/list-docs", response_model=list[DocumentInfo])
-async def list_documents():
+@app.get("/view-docs", response_model=list[DocumentInfo])
+async def view_documents():
     return get_all_documents()
 
 @app.post("/delete-doc")

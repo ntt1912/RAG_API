@@ -1,8 +1,14 @@
+import os
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from src.base_llms.llm_model import get_llm
 from src.rag.vectorDB_retriever import VectorDB
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 contextualize_q_system_prompt = (
     "Given a chat history and the latest user question "
@@ -34,15 +40,23 @@ rag_prompt = ChatPromptTemplate.from_messages(
 )
 
 class Conversation_RAG:
-    def __init__(self, llm) -> None:
-        self.retriever= self._get_retriever_for_rag(llm)
-        self.llm = llm
+    def __init__(self, model_name="gemini-1.5-flash") -> None:
+        self.model_name = model_name
+        self.api_key = self._get_api_key()  
+        self.llm = get_llm(api_key=self.api_key, model_name=self.model_name) 
+        self.retriever = self._get_retriever_for_rag() 
         self.prompt = rag_prompt
         self.contextualize_q_prompt = contextualize_q_prompt
+
+    def _get_api_key(self):
+        if self.model_name == "gpt-4o-mini":
+            return os.getenv("OPENAI_API_KEY")
+        else:
+            return os.getenv("GOOGLE_API_KEY")
     
-    def _get_retriever_for_rag(self,llm):
+    def _get_retriever_for_rag(self):
         vector_db = VectorDB()
-        retriever = vector_db.get_retriever(llm=llm)
+        retriever = vector_db.get_retriever(llm=self.llm)
         return retriever   
         
 

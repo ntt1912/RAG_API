@@ -1,14 +1,23 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
 # from src.rag.document_loader import Loader
 # from src.rag.vectorDB_retriever import VectorDB
 # from src.rag.conversation_rag import Conversation_RAG
+
+class ModelName(str, Enum):
+    GEMNINI_1_5_FLASH = "gemini-1.5-flash"
+    GPT4_O_MINI = "gpt-4o-mini"
 
 class InputQA(BaseModel):
     question: str = Field(..., title="Question to ask the model")
     session_id: str = Field(
         default=None,
         title="Optional session ID. If not provided, one will be generated.",
+    )
+    model: ModelName = Field(
+        default=ModelName.GEMNINI_1_5_FLASH,
+        title="Model to use for answering the question",
     )
     model_config = {"protected_namespaces": ()}
 
