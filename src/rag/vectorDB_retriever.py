@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union
 from langchain_chroma import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
