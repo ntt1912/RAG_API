@@ -6,7 +6,7 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
-from langchain_openai import OpenAIEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 from langchain_cohere import CohereRerank
 from langchain.docstore.document import Document
 import os, sqlite3

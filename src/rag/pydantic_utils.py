@@ -1,9 +1,8 @@
 from pydantic import BaseModel, Field
-from src.rag.document_loader import Loader
-from src.rag.vectorDB_retriever import VectorDB
-from src.rag.conversation_rag import Conversation_RAG
 from datetime import datetime
-
+# from src.rag.document_loader import Loader
+# from src.rag.vectorDB_retriever import VectorDB
+# from src.rag.conversation_rag import Conversation_RAG
 
 class InputQA(BaseModel):
     question: str = Field(..., title="Question to ask the model")

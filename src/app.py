@@ -1,9 +1,8 @@
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from langserve import add_routes
 from src.base_llms.llm_model import get_llm
-from src.rag.main import InputQA, OutputQA, DocumentInfo, DeleteFileRequest
+from rag.pydantic_utils import InputQA, OutputQA, DocumentInfo, DeleteFileRequest
 from src.rag.db_utils import insert_application_logs, get_rag_history
 from src.chatchit.main import InputChat, OutputChat
 from src.chatchit.main import build_chat_chain

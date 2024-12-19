@@ -1,5 +1,5 @@
-from typing import Union, List, Literal
-import glob, re
+from typing import List
+import re
 from tqdm import tqdm
 import multiprocessing
 from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader

@@ -1,7 +1,7 @@
-import torch
-from transformers import BitsAndBytesConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from langchain_huggingface import HuggingFacePipeline
+# import torch
+# from transformers import BitsAndBytesConfig
+# from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+# from langchain_huggingface import HuggingFacePipeline
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
