@@ -137,17 +137,3 @@ async def delete_document(request: DeleteFileRequest):
     else:
         return {"error": f"Failed to delete document with file_id {request.file_id} from Chroma."}
 
-
-
-# # --------- Langserve Routes - Playground ----------------
-# # add_routes(app, 
-# #            iot_chain, 
-# #            playground_type="default",
-# #            path="/IoT")
-
-# add_routes(app,
-#            chat_chain,
-#            enable_feedback_endpoint=False,
-#            enable_public_trace_link_endpoint=False,
-#            playground_type="default",
-#            path="/chat")
