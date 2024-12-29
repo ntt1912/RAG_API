@@ -40,7 +40,7 @@ rag_prompt = ChatPromptTemplate.from_messages(
 )
 
 class Conversation_RAG:
-    def __init__(self, model_name="gemini-1.5-flash") -> None:
+    def __init__(self, model_name="gpt-4o-mini") -> None:
         self.model_name = model_name
         self.api_key = self._get_api_key()  
         self.llm = get_llm(api_key=self.api_key, model_name=self.model_name) 

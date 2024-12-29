@@ -1,11 +1,17 @@
 from typing import List
-import re
+import re, os
 from tqdm import tqdm
 import multiprocessing
 from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader
 from langchain.docstore.document import Document
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from dotenv import load_dotenv
+
+load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 def remove_non_utf8_characters(text):
     """Remove non-UTF-8 characters to ensure text integrity."""
@@ -84,7 +90,7 @@ class TextSplitter:
                 sentence_split_regex: str = r"(?<=[.?!])\s+",
                 ) -> None:
         
-        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L12-v2")
+        self.embeddings = OpenAIEmbeddings(model = 'text-embedding-3-small', dimensions = 1024,api_key=openai_api_key)
         self.splitter = SemanticChunker(
             embeddings=self.embeddings,
             breakpoint_threshold_type=breakpoint_threshold_type,
