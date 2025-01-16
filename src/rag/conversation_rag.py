@@ -40,7 +40,7 @@ rag_prompt = ChatPromptTemplate.from_messages(
 )
 
 class Conversation_RAG:
-    def __init__(self, model_name="gpt-4o-mini") -> None:
+    def __init__(self, model_name=None) -> None:
         self.model_name = model_name
         self.api_key = self._get_api_key()  
         self.llm = get_llm(api_key=self.api_key, model_name=self.model_name) 
@@ -56,8 +56,8 @@ class Conversation_RAG:
     
     def _get_retriever_for_rag(self):
         vector_db = VectorDB()
-        retriever = vector_db.get_retriever(llm=self.llm)
-        return retriever   
+        return vector_db.get_retriever(llm=self.llm)
+
         
 
     def get_chain(self):

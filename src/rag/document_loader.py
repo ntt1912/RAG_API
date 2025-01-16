@@ -121,7 +121,7 @@ class Loader:
             "docx": DOCXLoader(),
         }
 
-    def load_and_split(self, files: List[str], workers: int = 1):
+    def load_and_split(self, files: List[str], workers: int = 4):
         doc_loaded = []
         for file_type in self.file_types:
             specific_files = [file for file in files if file.endswith(f".{file_type}")]
@@ -133,7 +133,7 @@ class Loader:
         print(f"Number of chunks from files: {len(doc_split)}")
         return doc_split
 
-    def load_dir(self, file_path: str, workers: int = 1):
+    def load_dir(self, file_path: str, workers: int = 4):
         return self.load_and_split([file_path], workers=workers)
 
 
