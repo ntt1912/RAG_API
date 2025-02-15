@@ -10,3 +10,8 @@ $ uvicorn src.app:app --host "0.0.0.0" --port 8000 --reload
 
 Use postman to test API if langserver doesn't work. 
 
+
+![image](https://github.com/user-attachments/assets/fbb19665-b19b-4cea-8273-37edbd749b7c)
+
+
+![image](https://github.com/user-attachments/assets/368b56d4-3540-44b6-ac7d-453f67c58ac4)
