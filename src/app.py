@@ -15,38 +15,36 @@ import uuid
 import shutil
 import logging
 
-
+# Set up logging to file
 logging.basicConfig(filename='app.log', level=logging.INFO)
 
-
+# Load environment variables from .env file
 load_dotenv()
 
-MODEL_NAME = "gemini-1.5-flash"
+# --------- Model and LLM Setup ----------------
+MODEL_NAME = "gemini-1.5-flash"  # Default model name
 if MODEL_NAME == "gemini-1.5-flash":
     API_KEY = os.getenv("GOOGLE_API_KEY")
 else:
     API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Initialize the language model
 llm = get_llm(api_key=API_KEY, model_name=MODEL_NAME)
-# llm = get_hf_llm(temperature=0.4)
-#--------- Retiever ----------------
+# llm = get_hf_llm(temperature=0.4)  # Alternative: HuggingFace LLM
 
-
-# iot_docs = "./data_source/IoT"
-
-# --------- Chains----------------
-
+# --------- Chains (RAG, Chat) ----------------
+# iot_docs = "./data_source/IoT"  # Example data directory for IoT docs
 # iot_chain = build_rag_chain(llm, data_dir=iot_docs, data_type=["pdf", "docx"])
+
+# Build the chat chain with message history
 chat_chain = build_chat_chain(llm, 
                               history_folder="./chat_histories",
                               max_history_length=100)
 
+# --------- FastAPI App Setup ----------------
+app = FastAPI()
 
-# --------- App - FastAPI ----------------
-
-app = FastAPI(
-)
-
+# Enable CORS for all origins (for frontend integration)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -56,15 +54,19 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# --------- Routes - FastAPI ----------------
+# --------- API Routes ----------------
 
 @app.get("/check")
 async def check():
+    """Health check endpoint."""
     return {"status": "ok"}
-
 
 @app.post("/IoT", response_model=OutputQA)
 async def IoT(inputs: InputQA):
+    """
+    RAG endpoint for IoT Q&A. Uses Conversation_RAG chain to answer questions with context.
+    Logs the conversation and returns the answer.
+    """
     questions = inputs.question
     session_id = inputs.session_id or str(uuid.uuid4())
     logging.info(f"Session ID: {session_id}, User Query: {inputs.question}, Model: {inputs.model.value}")
@@ -81,7 +83,10 @@ async def IoT(inputs: InputQA):
 
 @app.post("/chat", response_model=OutputChat)
 async def chat(inputs: InputChat):
-    question=inputs.human_input
+    """
+    General chat endpoint. Uses chat_chain for conversational LLM with message history.
+    """
+    question = inputs.human_input
     session_id = inputs.session_id or str(uuid.uuid4())
     answer = chat_chain.invoke(
             {"human_input": question},  
@@ -91,6 +96,10 @@ async def chat(inputs: InputChat):
 
 @app.post("/upload-doc")
 async def upload_and_index_document(file: UploadFile = File(...)):
+    """
+    Upload a PDF or DOCX file, index its content, and add to the vector database.
+    Returns file_id and success message if successful.
+    """
     allowed_extensions = ['.pdf', '.docx']
     file_extension = os.path.splitext(file.filename)[1].lower()
 
@@ -107,7 +116,7 @@ async def upload_and_index_document(file: UploadFile = File(...)):
         file_id = insert_document_record(file.filename)
         doc_split = Loader(file_types=[file_extension[1:]]).load_dir(temp_file_path)
         vector_db = VectorDB(file_id=file_id)
-        success = vector_db.build_db_and_indexing(documents=doc_split,file_id=file_id)
+        success = vector_db.build_db_and_indexing(documents=doc_split, file_id=file_id)
 
         if success:
             return {"message": f"File {file.filename} has been successfully uploaded and indexed.", "file_id": file_id}
@@ -120,10 +129,16 @@ async def upload_and_index_document(file: UploadFile = File(...)):
 
 @app.get("/view-docs", response_model=list[DocumentInfo])
 async def view_documents():
+    """
+    List all uploaded documents and their metadata.
+    """
     return get_all_documents()
 
 @app.post("/delete-doc")
 async def delete_document(request: DeleteFileRequest):
+    """
+    Delete a document from both the vector database and the document store by file_id.
+    """
     # Delete from Chroma
     chroma_delete_success = VectorDB().delete_doc_from_chroma(request.file_id)
 
